@@ -24,7 +24,7 @@ The plugin currently implements the following multi-tenancy architecures (Strate
 
 ### Tenants
 
-The plugin introduces the concept of Tenants, a tenant represent each customer account.
+The plugin introduces the concept of Tenants, a tenant represents each customer account.
 
 A tenant can have it's own users, groups, and records.  Data is scoped to the tenant, tenants are represented
 in the database as Accounts (or any Model/Table you designate by configuration).
