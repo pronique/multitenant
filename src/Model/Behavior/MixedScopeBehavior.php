@@ -21,6 +21,7 @@ use Cake\ORM\Entity;
 use Cake\ORM\Table;
 use Cake\ORM\Query;
 use MultiTenant\Core\MTApp;
+use MultiTenant\Error\DataScopeViolationException;
 
 class MixedScopeBehavior extends Behavior {
 	
@@ -42,9 +43,7 @@ class MixedScopeBehavior extends Behavior {
  */
 	protected $_defaultConfig = [
 		'implementedFinders' => [],
-		'implementedMethods' => [
-			'owner' => 'owner'
-		],
+		'implementedMethods' => [],
 		'global_value'=>0,
 		'foreign_key_field'=>'account_id'
 	];
@@ -60,16 +59,8 @@ class MixedScopeBehavior extends Behavior {
  */
 	public function __construct(Table $table, array $config = []) {
 
-		//Implement config from Config\app.php if defined
-		//Must happen before parent::__construct() to maintain order
-		$appMixedScopeBehaviorConfig = MTApp::config('MixedScopeBehavior' );
-		if ( is_array($appMixedScopeBehaviorConfig ) AND array_key_exists('foreign_key_field', $appMixedScopeBehaviorConfig ) ) {
-			$this->config('foreign_key_field', $appMixedBehaviorConfig['foreign_key_field'], false);
-		} 
-		if ( is_array($appMixedScopeBehaviorConfig ) AND array_key_exists('global_value', $appMixedScopeBehaviorConfig ) ) {
-			$this->config('global_value', $appMixedScopeBehaviorConfig['global_value'], false);
-		} 
-
+		//Merge $config with application-wide scopeBehavior config
+		$config = array_merge( MTApp::config( 'scopeBehavior' ), $config );
 		parent::__construct($table, $config);
 
 		$this->_table = $table;
@@ -101,23 +92,53 @@ class MixedScopeBehavior extends Behavior {
 	}
 
 /**
- * beforeSave callback.
+ * beforeSave callback
  *
- * 
+ * Allow insert of tenant records if in tenant context
+ * Allow insert of tenant records if in tenant context
+ * Prevent update of records that are global
+ * Prevent update if the record belongs to another tenant
  *
  * @param \Cake\Event\Event $event The beforeSave event that was fired.
  * @param \Cake\ORM\Entity $entity The entity that was saved.
  * @return void
  */
 	public function beforeSave( Event $event, Entity $entity, $options ) {
-		//pr( $options);
-		//exit;
+
+		if ( MTApp::getContext() == 'tenant' ) { //save new operation
+
+			$field = $this->config('foreign_key_field');
+
+			//insert operation
+			if ( $entity->isNew() ) {
+
+				//blind overwrite, preventing user from providing explicit value
+				$entity->{$field} = MTApp::tenant()->id;
+
+			} else { //update operation
+
+				//prevent tenant from updating global records
+				if ( $entity->{$field} == $this->config('global_value') ) {
+					throw new DataScopeViolationException( 'Tenant cannot update global records' );	
+				}
+
+				//paranoid check of ownership
+				if ( $entity->{$field} != MTApp::tenant()->id ) { //current tenant is NOT owner
+					throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id );
+				}
+				
+			} // end if
+
+		}
+
+		return true;
 	}
 
 /**
  * beforeDelete callback
  *
- * Prevent delete if the context is not global
+ * Prevent delete if the record is global
+ * Prevent delete if the record belongs to another tenant
  *
  * @param \Cake\Event\Event $event The beforeDelete event that was fired.
  * @param \Cake\ORM\Entity $entity The entity that was saved.
@@ -125,7 +146,7 @@ class MixedScopeBehavior extends Behavior {
  */
 	public function beforeDelete( Event $event, Entity $entity, $options ) {
 
-		if ( MTApp::getContext() == 'tenant' ) { //save new operation
+		if ( MTApp::getContext() == 'tenant' ) { 
 
 			$field = $this->config('foreign_key_field');
 
@@ -144,9 +165,5 @@ class MixedScopeBehavior extends Behavior {
 		return true;
 	}
 	
-
-	public function owner() {
-		return MTApp::tenant();
-	}
 
 }

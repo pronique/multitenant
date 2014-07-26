@@ -55,7 +55,8 @@ class GlobalScopeBehavior extends Behavior {
  * @param array $config The config for this behavior.
  */
 	public function __construct(Table $table, array $config = []) {
-		
+		//Merge $config with application-wide scopeBehavior config
+		$config = array_merge( MTApp::config( 'scopeBehavior' ), $config );
 		parent::__construct($table, $config);
 
 		$this->_table = $table;
@@ -86,6 +87,25 @@ class GlobalScopeBehavior extends Behavior {
 	public function beforeSave( Event $event, Entity $entity, $options ) {
 		//Prevent saving records in the implementing table if this is the tenant context
 		if ( MTApp::getContext() == 'tenant' ) {
+			return false;
+		}
+
+		return true;
+	}
+
+
+/**
+ * beforeDelete callback
+ *
+ * Prevent delete in the tenant context
+ *
+ * @param \Cake\Event\Event $event The beforeDelete event that was fired.
+ * @param \Cake\ORM\Entity $entity The entity that was saved.
+ * @return void
+ */
+	public function beforeDelete( Event $event, Entity $entity, $options ) {
+
+		if ( MTApp::getContext() == 'tenant' ) { 
 			return false;
 		}
 

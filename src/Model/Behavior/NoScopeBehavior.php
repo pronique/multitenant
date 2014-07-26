@@ -23,7 +23,7 @@ use Cake\ORM\Query;
 use MultiTenant\Core\MTApp;
 use MultiTenant\Error\DataScopeViolationException;
 
-class TenantScopeBehavior extends Behavior {
+class NoScopeBehavior extends Behavior {
 	
 /**
  * Keeping a reference to the table in order to,
@@ -65,22 +65,6 @@ class TenantScopeBehavior extends Behavior {
 	}
 
 /**
- * beforeFind callback
- *
- * inject where condition if context is 'tenant'
- *
- * @param \Cake\Event\Event $event The afterSave event that was fired.
- * @param \Cake\ORM\Query $query The query.
- * @return void
- */
-	public function beforeFind( Event $event, Query $query ) {
-		if ( MTApp::getContext() == 'tenant' ) {
-			$query->where([$this->_table->alias().'.'.$this->config('foreign_key_field')=>MTApp::tenant()->id]);
-		}
-		return $query;
-	}
-
-/**
  * beforeSave callback
  *
  * Prevent saving if the context is not global
@@ -96,47 +80,22 @@ class TenantScopeBehavior extends Behavior {
 			$field = $this->config('foreign_key_field');
 			if ( $entity->isNew() ) {
 
-				//blind overwrite, preventing user from providing explicit value
-				$entity->{$field} = MTApp::tenant()->id;
+				// Model is no required to have a foreign_key_field to tenant,
+				// But if one exists we will update it
 
-			} else { //update operation
+				// no overwrite, if foreign_keyfield has an assigned value, do nothing
+				if ( $entity->{$field} === null ) {
 
-				//paranoid check of ownership
-				if ( $entity->{$field} != MTApp::tenant()->id ) { //current tenant is NOT owner
-					throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id );
+					$entity->{$field} = MTApp::tenant()->id;
 				}
-				
-			} // end if
 
-		}
-
-		return true;
-	}
-
-/**
- * beforeDelete callback
- *
- * Prevent delete if the context is not global
- *
- * @param \Cake\Event\Event $event The beforeDelete event that was fired.
- * @param \Cake\ORM\Entity $entity The entity that was saved.
- * @return void
- */
-	public function beforeDelete( Event $event, Entity $entity, $options ) {
-
-		if ( MTApp::getContext() == 'tenant' ) { 
-
-			$field = $this->config('foreign_key_field');
-
-			//paranoid check of ownership
-			if ( $entity->{$field} != MTApp::tenant()->id ) { //current tenant is NOT owner
-				throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id );
 			}
 
 		}
 
 		return true;
 	}
-	
+
+
 
 }

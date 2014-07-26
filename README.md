@@ -90,6 +90,7 @@ tenant's records.
 
 No Scope Models add scoping to the Model, it is a verbose way to express that a Model is not scoped at all.
 If the table has an account_id field, the inserting tenant's id is used to notate who inserted the record.
+Since scope is not enfored, any tenant can delete any record.
 
 ## Installation
 
@@ -171,10 +172,7 @@ Add the following to the bottom of your applicaiton's Config\app.php
 		'contextMap' => [
 			'admin'=>'admin.example.com' //an example of a custom context
 		],
-		'ScopedBehavior'=>[
-			'foreign_key_field'=>'account_id' //the foreign key field that associates records to tenant model
-		],
-		'MixedBehavior'=>[
+		'scopeBehavior'=>[
 			'global_value'=>0, //global records are matched by this value
 			'foreign_key_field'=>'account_id' //the foreign key field that associates records to tenant model
 		]

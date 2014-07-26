@@ -23,7 +23,7 @@ use Cake\ORM\Query;
 use MultiTenant\Core\MTApp;
 use MultiTenant\Error\DataScopeViolationException;
 
-class TenantScopeBehavior extends Behavior {
+class SharedScopeBehavior extends Behavior {
 	
 /**
  * Keeping a reference to the table in order to,
@@ -44,6 +44,7 @@ class TenantScopeBehavior extends Behavior {
 	protected $_defaultConfig = [
 		'implementedFinders' => [],
 		'implementedMethods' => [],
+		'global_value'=>0,
 		'foreign_key_field'=>'account_id'
 	];
 
