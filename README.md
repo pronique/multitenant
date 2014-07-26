@@ -36,7 +36,7 @@ how the multitenant plugin works.  There are two predefined contexts, 'tenant' a
 
 #### 'global' Context
 
-By default, 'global' maps to www.mydomain.com and is where you will implement non-tenant specific parts of your
+By default, 'global' maps to www.mydomain.com and is where you will implement non-tenant parts of your
 application. ie signup/register code.
 
 #### 'tenant' Context
@@ -44,7 +44,7 @@ application. ie signup/register code.
 'tenant' context represents this tenant.  When the user is accessing the application at the subdomain, this is 
 considered the 'tenant' context.
 
-#### 'custom' Contexts
+#### Custom Contexts
 
 The plugin supports the definition of additional contexts, these custom contexts are mapped
 to subdomains.  Your application you can now call `MTApp::getContext()` to implement context-aware
@@ -61,13 +61,13 @@ what data is accessible based on the context.  These scopes are implemented as C
 
 #### GlobalScope
 
-The data provided in a Global Scoped Model can be queried by any tenant but insert/update/delete
-are not allowed from the 'tenant' Context.
+The data provided in a Global Scoped Model can be queried by any tenant but insert/update/delete operations
+are not allowed in the 'tenant' Context.
 
 #### TenantScope
 
-The data provided in a Tenant Scoped Model can only queried by the owner (tenant).  Insert operation are 
-scoped to the current tenant, Update and Delete operations are enfore ownership, so that Tenant1 cannot 
+The data provided in a Tenant Scoped Model can only queried by the owner (tenant).  Insert operations are 
+scoped to the current tenant.  Update and Delete operations enfore ownership, so that Tenant1 cannot 
 update/delete Tenant2's records.
 
 #### MixedScope
@@ -91,6 +91,176 @@ tenant's records.
 No Scope Models add scoping to the Model, it is a verbose way to express that a Model is not scoped at all.
 If the table has an account_id field, the inserting tenant's id is used to notate who inserted the record.
 
+## Installation
+
+### composer
+
+The recommended installation method for this plugin is by using composer. Just add this to your `composer.json` configuration:
+
+```json
+{
+	"require" : {
+		"pronique/multitenant": "master-dev"
+	}
+}
+```
+
+### git clone
+
+Alternatively you can just `git clone` the code into your application
+
+```
+git clone git://github.com/pronique/multitenant.git app/Plugin/MultiTenant
+```
+
+### git submodule
+
+Or add it as a git module, this is recommended over `git clone` since it’s easier to keep up to date with development that way
+
+```
+git submodule add git://github.com/pronique/multitenant.git app/Plugin/MultiTenant
+```
+
+## Configuration
+
+Add the following to your `app/Config/bootstrap.php`
+
+```php
+<?php
+Plugin::load('MultiTenant', ['bootstrap' => true, 'routes' => false]);
+?>
+```
+
+Add the following to the bottom of the Config\app.php
+
+```php
+/**
+ * MultiTenant Plugin Configuration
+ *
+ *
+ * ## Options
+ *
+ * - `strategy` - 'domain' is currently the only implemented strategy
+ * - `primaryDomain` - The domain for the main application
+ *    value to false, when dealing with older versions of IE, Chrome Frame or certain web-browsing devices and AJAX
+ * - `model` - The model that represents the tenant, usually 'Accounts'
+ * - `redirectInactive` - URI to redirect when the tenant is not active or does not exist.  This should be a uri at the
+ *	  primary domain, usually your signup page or feature pitch page with call-to-action signup button.
+ * - `reservedDomains` - An array of names that cannot be chosen at signup
+ * - `contextMap` - Associative array used to define additional custom contexts besides 'global' and 'tenant', 
+ *    i.e. when domain admin.domain.com is matched MTApp::getContext() will return the custom context 'admin'. 
+ * - `ScopedBehavior` - Application wide defaults for the ScopedBehavior Behavior
+ * - `MixedBehavior` - Application wide defaults for the MixedBehavior Behavior
+ *
+ */
+	'MultiTenant' => [
+		'strategy'=>'domain',
+		'primaryDomain'=>'www.example.com',
+		'model'=>[
+		  'className'=>'Accounts',
+		  'field'=>'domain', //field of model that holds subdomain/domain tenants
+		  'conditions'=>['is_active'=>1] //query conditions to match active accounts
+		],
+		'redirectInactive'=>'/register',
+		'reservedDomains'=>[
+			'admin',
+			'superuser',
+			'system',
+			'www'
+		],
+		'contextMap' => [
+			'admin'=>'admin.example.com' //an example of a custom context
+		],
+		'ScopedBehavior'=>[
+			'foreign_key_field'=>'account_id' //the foreign key field that associates records to tenant model
+		],
+		'MixedBehavior'=>[
+			'global_value'=>0, //global records are matched by this value
+			'foreign_key_field'=>'account_id' //the foreign key field that associates records to tenant model
+		]
+	]
+```
+
+## Usage
+
+### MTApp
+
+`MTApp` is a static class that you can call from anywhere in your application.
+
+```php
+//Returns an entity of the current tenant
+$tenant = MTApp::tenant();
+echo $tenant->id;
+//output 1
+
+//Or the same thing in a single line;
+echo MTApp::tenant()->id;
+
+//Another Example, you can reference any field in the underlying model
+echo MTApp::tenant()->name;
+//output Acme Corp.
+```
+
+```php
+use MultiTenant\Core\MTApp;
+
+// Based on URL, we are in a tenant's sudomain, customera.example.com
+echo MTApp::getContext();
+//output 'tenant'
+
+// Based on URL, we are in at the primary sudomain www.example.com
+echo MTApp::getContext();
+//output 'global'
+
+// Assumming we have defined a custom context, we are in at the sudomain admin.example.com
+echo MTApp::getContext();
+//output 'admin'
+
+var_dump( MTApp::);
+```
+
+You can omit the `use MultiTenant\Core\MTApp;` line by calling the full namedspaced version
+
+```php
+\MultiTenant\Core\MTApp::tenant();
+```
+### Behaviors usage examples
+
+```php
+class SomeTenantTable extends Table {
+	
+	public function initialize(array $config) {
+		...
+		$this->addBehavior('MultiTenant.TenantScope');
+		...
+	}
+	...
+}
+```
+
+```php
+class SomeMixedTable extends Table {
+	
+	public function initialize(array $config) {
+		...
+		$this->addBehavior('MultiTenant.MixedScope');
+		...
+	}
+	...
+}
+```
+
+```php
+class SomeCommonTable extends Table {
+	
+	public function initialize(array $config) {
+		...
+		$this->addBehavior('MultiTenant.GlobalScope');
+		...
+	}
+	...
+}
+```
 
 # Bugs
 
