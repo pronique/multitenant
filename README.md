@@ -188,6 +188,8 @@ Add the following to the bottom of the Config\app.php
 `MTApp` is a static class that you can call from anywhere in your application.
 
 ```php
+use MultiTenant\Core\MTApp;
+
 //Returns an entity of the current tenant
 $tenant = MTApp::tenant();
 echo $tenant->id;
@@ -219,7 +221,7 @@ echo MTApp::getContext();
 var_dump( MTApp::);
 ```
 
-You can omit the `use MultiTenant\Core\MTApp;` line by calling the full namedspaced version
+You can omit the `use MultiTenant\Core\MTApp;` line by calling the class with full namespace
 
 ```php
 \MultiTenant\Core\MTApp::tenant();
