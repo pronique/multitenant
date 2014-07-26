@@ -1,0 +1,50 @@
+{
+	"name":"pronique/multitenant",
+	"version": "0.8.1",
+	"description":"MultiTenant CakePHP Plugin -  Use this plugin to easily build SaaS enabled web applications.",
+	"type":"cakephp-plugin",
+	"keywords":[
+		"cakephp",
+		"cakephp3",
+		"cake3"
+		"plugin",
+		"cakephp-plugin",
+		"saas",
+		"multitenant",
+		"multi-tenant",
+		"subdomain",
+		"cake",
+		"pronique"
+	],
+	"homepage":"https://github.com/pronique/multitenant",
+	"license":"MIT",
+	"authors":[
+		{
+			"name":"Jonathan Cutrer",
+			"role":"Author",
+			"homepage":"http://github.com/joncutrer"
+		}
+	],
+	"require":{
+		"composer/installers":"*"
+	},
+	"require-dev": {
+		"cakephp/cakephp": "3.0.*-dev"
+	},
+	"suggest":{
+
+	},
+	"autoload": {
+		"psr-4": {
+			"MultiTenant\\": "src",
+			"MultiTenant\\Test\\": "tests"
+		}
+	},
+	"support":{
+		"source":"https://github.com/pronique/multitenant",
+		"issues":"https://github.com/pronique/multitenant/issues"
+	},
+	"extra": {
+		"installer-name": "MultiTenant"
+	}
+}
