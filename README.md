@@ -181,7 +181,7 @@ Add the following to the bottom of your applicaiton's Config\app.php
 	]
 ```
 
-Note:  don't forget to add the , to the bottom config section when pasting in.  a syntax error in Config\app.php is a silent failure (blank page). 
+Note:  don't forget to add the , to the bottom config section when pasting the above configuration.  A syntax error in Config\app.php is a silent failure (blank page). 
 
 ## Usage
 
