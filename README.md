@@ -2,24 +2,24 @@
 
 MultiTenant CakePHP Plugin - Use this plugin to easily build SaaS enabled web applications.
 
-# Version notice
+## Version notice
 
 This plugin only supports CakePHP 3.x
 
-This project currently in development and is considered experimental at this stage.
+The project is currently in development and is considered experimental at this stage.
 
 ## Introduction
 
-The MultiTenant plugin is best implement when you begin developing your application, but with some work
-you should be able adapt an existing application to use the Plugin.
+The MultiTenant plugin is best to implement when you begin developing your application, but with some work
+you should be able to adapt an existing application to use the Plugin.
 
 The plugin currently implements the following multi-tenancy architecures (Strategy).
 
 ### Domain Strategy
 
-Shared Database, Shared Schema
-Single Application Instance
-Subdomain per Tenant
+* Shared Database, Shared Schema
+* Single Application Instance
+* Subdomain per Tenant
 
 
 ### Tenants
