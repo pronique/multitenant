@@ -227,8 +227,9 @@ You can omit the `use MultiTenant\Core\MTApp;` line by calling the class with fu
 ```php
 \MultiTenant\Core\MTApp::tenant();
 ```
-### Behaviors usage examples
+### Behavior usage examples
 
+#### TenantScopeBehavior
 ```php
 class SomeTenantTable extends Table {
 	
@@ -241,6 +242,7 @@ class SomeTenantTable extends Table {
 }
 ```
 
+#### MixedScopeBehavior
 ```php
 class SomeMixedTable extends Table {
 	
@@ -253,12 +255,39 @@ class SomeMixedTable extends Table {
 }
 ```
 
+#### GlobalScopeBehavior
 ```php
 class SomeCommonTable extends Table {
 	
 	public function initialize(array $config) {
 		...
 		$this->addBehavior('MultiTenant.GlobalScope');
+		...
+	}
+	...
+}
+```
+
+#### SharedScopeBehavior
+```php
+class SomeSharedTable extends Table {
+	
+	public function initialize(array $config) {
+		...
+		$this->addBehavior('MultiTenant.SharedScope');
+		...
+	}
+	...
+}
+```
+
+#### NoScopeBehavior
+```php
+class JustARegularTable extends Table {
+	
+	public function initialize(array $config) {
+		...
+		$this->addBehavior('MultiTenant.NoScope');
 		...
 	}
 	...
