@@ -131,7 +131,7 @@ Plugin::load('MultiTenant', ['bootstrap' => true, 'routes' => false]);
 ?>
 ```
 
-Add the following to the bottom of the Config\app.php
+Add the following to the bottom of your applicaiton's Config\app.php
 
 ```php
 /**
@@ -181,6 +181,8 @@ Add the following to the bottom of the Config\app.php
 	]
 ```
 
+Note:  don't forget to add the , to the bottom config section when pasting in.  a syntax error in Config\app.php is a silent failure (blank page). 
+
 ## Usage
 
 ### MTApp
@@ -219,7 +221,8 @@ echo MTApp::getContext();
 echo MTApp::getContext();
 //output 'admin'
 
-var_dump( MTApp::);
+var_dump( MTApp::isPrimary() );
+//returns true if we are at the primaryDomain, false if we are at a tenant's subdomain or in a custom context.
 ```
 
 You can omit the `use MultiTenant\Core\MTApp;` line by calling the class with full namespace
