@@ -197,6 +197,7 @@ echo $tenant->id;
 
 //Or the same thing in a single line;
 echo MTApp::tenant()->id;
+//output 1
 
 //Another Example, you can reference any field in the underlying model
 echo MTApp::tenant()->name;
