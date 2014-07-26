@@ -299,3 +299,6 @@ class JustARegularTable extends Table {
 If you happen to stumble upon a bug, please feel free to create a pull request with a fix, and a description
 of the bug and how it was resolved.
 
+# Features
+
+Pull requests are the best way to propose new features.
