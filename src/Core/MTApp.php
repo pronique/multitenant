@@ -15,7 +15,7 @@
 namespace MultiTenant\Core;
 
 use Cake\Core\StaticConfigTrait;
-use Cake\Error\Exception;
+use Cake\Core\Exception\Exception;
 use Cake\ORM\TableRegistry;
 
 //TODO Implement Singleton/Caching to eliminate sql query on every call
@@ -73,7 +73,7 @@ class MTApp {
     
     //if tentant/_findTenant is called at the primary domain the plugin is being used wrong;
     if ( self::isPrimary() ) {
-      throw new Exception('MTApp::tenant() cannot called from primaryDomain context');
+      throw new Exception('MTApp::tenant() cannot be called from primaryDomain context');
     }
 
     $tenant =  static::_findTenant();

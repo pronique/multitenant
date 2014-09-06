@@ -14,7 +14,8 @@
  */
 namespace MultiTenant\Error;
 
-use Cake\Error\Exception;
+use Cake\Core\Exception\Exception;
+
 /**
  * Parent class for all of the HTTP related exceptions in CakePHP.
  * All HTTP status/error related exceptions should extend this class so
