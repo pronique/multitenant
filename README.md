@@ -124,7 +124,7 @@ git submodule add git://github.com/pronique/multitenant.git app/Plugin/MultiTena
 
 ## Configuration
 
-Add the following to your `app/Config/bootstrap.php`
+Add the following to your `config/bootstrap.php`
 
 ```php
 <?php
@@ -132,7 +132,7 @@ Plugin::load('MultiTenant', ['bootstrap' => true, 'routes' => false]);
 ?>
 ```
 
-Add the following to the bottom of your applicaiton's Config\app.php
+Add the following to the bottom of your application's config\app.php
 
 ```php
 /**
@@ -179,7 +179,7 @@ Add the following to the bottom of your applicaiton's Config\app.php
 	]
 ```
 
-Note:  don't forget to add the , to the bottom config section when pasting the above configuration.  A syntax error in Config\app.php is a silent failure (blank page). 
+Note:  don't forget to add the , to the bottom config section when pasting the above configuration.  A syntax error in config\app.php is a silent failure (blank page). 
 
 ## Usage
 
