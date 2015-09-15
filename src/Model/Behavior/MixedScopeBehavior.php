@@ -24,7 +24,7 @@ use MultiTenant\Core\MTApp;
 use MultiTenant\Error\DataScopeViolationException;
 
 class MixedScopeBehavior extends Behavior {
-	
+
 /**
  * Keeping a reference to the table in order to,
  * be able to retrieve table/model attributes
@@ -80,11 +80,11 @@ class MixedScopeBehavior extends Behavior {
 		if ( MTApp::getContext() == 'tenant' ) {
 			$query->where(
 				[
-					$this->_table->alias().'.'.$this->config('foreign_key_field') . ' IN'=> [ 
+					$this->_table->alias().'.'.$this->config('foreign_key_field') . ' IN'=> [
 						$this->config('global_value'),
-						MTApp::tenant()->id 
+						MTApp::tenant()->id
 					]
-				] 
+				]
 			);
 		}
 
@@ -117,16 +117,17 @@ class MixedScopeBehavior extends Behavior {
 
 			} else { //update operation
 
-				//prevent tenant from updating global records
-				if ( $entity->{$field} == $this->config('global_value') ) {
-					throw new DataScopeViolationException( 'Tenant cannot update global records' );	
+				//prevent tenant from updating global records if he is not the owner of the global tenant
+				if ( $entity->{$field} == $this->config('global_value') &&
+					MTapp::tenant()->id != $this->config('global_value')) {
+					throw new DataScopeViolationException( 'Tenant cannot update global records' );
 				}
 
 				//paranoid check of ownership
 				if ( $entity->{$field} != MTApp::tenant()->id ) { //current tenant is NOT owner
 					throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id );
 				}
-				
+
 			} // end if
 
 		}
@@ -146,12 +147,13 @@ class MixedScopeBehavior extends Behavior {
  */
 	public function beforeDelete( Event $event, Entity $entity, $options ) {
 
-		if ( MTApp::getContext() == 'tenant' ) { 
+		if ( MTApp::getContext() == 'tenant' ) {
 
 			$field = $this->config('foreign_key_field');
 
-			//tenant cannot delete global records
-			if ( $entity->{$field} == $this->config('global_value') ) {
+			//tenant cannot delete global records if he is not the onwer of the global tenant
+			if ( $entity->{$field} == $this->config('global_value') &&
+				MTapp::tenant()->id != $this->config('global_value')) {
 				return false;
 			}
 
@@ -164,6 +166,6 @@ class MixedScopeBehavior extends Behavior {
 
 		return true;
 	}
-	
+
 
 }
