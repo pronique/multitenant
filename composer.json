@@ -1,5 +1,5 @@
 {
-	"name":"pronique/multitenant",
+	"name":"pdata/multitenant",
 	"version": "0.8.1",
 	"description":"MultiTenant CakePHP Plugin -  Use this plugin to easily build SaaS enabled web applications.",
 	"type":"cakephp-plugin",
@@ -16,7 +16,7 @@
 		"cake",
 		"pronique"
 	],
-	"homepage":"https://github.com/pronique/multitenant",
+	"homepage":"https://github.com/pdata/multitenant",
 	"license":"MIT",
 	"authors":[
 		{
