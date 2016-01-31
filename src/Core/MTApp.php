@@ -112,9 +112,16 @@ class MTApp {
   } 
 
   protected static function _redirectInactive() {
-    
+  
     $uri = self::config('redirectInactive');
-    header( 'Location: ' . env('REQUEST_SCHEME') .'://' . self::config('primaryDomain') . $uri );
+
+    if(strpos($uri, 'http') !== false) {
+      $full_uri = $uri;
+    } else {
+      $full_uri = env('REQUEST_SCHEME') .'://' . self::config('primaryDomain') . $uri;
+    }
+  
+    header( 'Location: ' . $full_uri );
     exit;
   
   } 
