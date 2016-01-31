@@ -102,6 +102,17 @@ class MTApp {
     $tbl = TableRegistry::get( $modelConf['className'] );
 
     //blend in config defined conditions
+    if($modelConf['modifyQualifier']) {
+      switch($modelConf['modifyQualifier']['method']) {
+        case 'str_replace':
+          $qualifier = str_replace($modelConf['modifyQualifier']['remove'], '', $qualifier);
+        break;
+
+        default:
+          // nothing
+        break;
+      }
+    }
     $conditions = array_merge([$modelConf['field']=>$qualifier], $modelConf['conditions']);
 
     //Query model and store in cache
