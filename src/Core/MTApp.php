@@ -102,6 +102,17 @@ class MTApp {
     $tbl = TableRegistry::get( $modelConf['className'] );
 
     //blend in config defined conditions
+    if($modelConf['modifyQualifier']) {
+      switch($modelConf['modifyQualifier']['method']) {
+        case 'str_replace':
+          $qualifier = str_replace($modelConf['modifyQualifier']['remove'], '', $qualifier);
+        break;
+
+        default:
+          // nothing
+        break;
+      }
+    }
     $conditions = array_merge([$modelConf['field']=>$qualifier], $modelConf['conditions']);
 
     //Query model and store in cache
@@ -112,9 +123,16 @@ class MTApp {
   } 
 
   protected static function _redirectInactive() {
-    
+  
     $uri = self::config('redirectInactive');
-    header( 'Location: ' . env('REQUEST_SCHEME') .'://' . self::config('primaryDomain') . $uri );
+
+    if(strpos($uri, 'http') !== false) {
+      $full_uri = $uri;
+    } else {
+      $full_uri = env('REQUEST_SCHEME') .'://' . self::config('primaryDomain') . $uri;
+    }
+  
+    header( 'Location: ' . $full_uri );
     exit;
   
   } 
