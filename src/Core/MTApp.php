@@ -1,4 +1,5 @@
 <?php
+
 /**
  * MultiTenant Plugin
  * Copyright (c) PRONIQUE Software (http://pronique.com)
@@ -38,7 +39,7 @@ class MTApp {
     //get tenant qualifier
     $qualifier = self::_getTenantQualifier();
     
-    if ( $qualifier == self::config('primaryDomain') ) {
+    if ( $qualifier == '' ) {
       return 'global';
     }
 
@@ -53,7 +54,7 @@ class MTApp {
     //get tenant qualifier
     $qualifier = self::_getTenantQualifier();
     
-    if ( $qualifier == self::config('primaryDomain') ) {
+    if ( $qualifier == '' ) {
       return true;
     }
 
@@ -67,9 +68,6 @@ class MTApp {
   * @returns Cake\ORM\Entity
   */
   public static function tenant( ) {
-
-    //get tenant qualifier
-    $qualifier = self::_getTenantQualifier();
     
     //if tentant/_findTenant is called at the primary domain the plugin is being used wrong;
     if ( self::isPrimary() ) {
@@ -89,6 +87,12 @@ class MTApp {
 
   
   protected static function _findTenant() {
+    
+    //if tentant/_findTenant is called at the primary domain the plugin is being used wrong;
+    if ( self::isPrimary() ) {
+      throw new Exception('MTApp::tenant() cannot be called from primaryDomain context');
+    }
+    
     //get tenant qualifier
     $qualifier = self::_getTenantQualifier();
     
@@ -100,23 +104,10 @@ class MTApp {
     //load model
     $modelConf= self::config('model');
     $tbl = TableRegistry::get( $modelConf['className'] );
-
-    //blend in config defined conditions
-    if($modelConf['modifyQualifier']) {
-      switch($modelConf['modifyQualifier']['method']) {
-        case 'str_replace':
-          $qualifier = str_replace($modelConf['modifyQualifier']['remove'], '', $qualifier);
-        break;
-
-        default:
-          // nothing
-        break;
-      }
-    }
     $conditions = array_merge([$modelConf['field']=>$qualifier], $modelConf['conditions']);
 
     //Query model and store in cache
-    self::$_cachedAccounts[$qualifier] = $tbl->find('all')->where($conditions)->first();
+    self::$_cachedAccounts[$qualifier] = $tbl->find('all', ['skipTenantCheck' => true])->where($conditions)->first();
 
     return self::$_cachedAccounts[$qualifier];
   
@@ -139,7 +130,13 @@ class MTApp {
   protected static function _getTenantQualifier() {
     //for domain this is the SERVER_NAME from $_SERVER
     if ( self::config('strategy') == 'domain' ) {
-      return env('SERVER_NAME');
+
+      // check if tenant is available and server name valid
+      if (substr_count(env('SERVER_NAME'), self::config('primaryDomain')) > 0 && substr_count(env('SERVER_NAME'), '.') > 1) {
+        return str_replace('.' . self::config('primaryDomain'), '', env('SERVER_NAME'));
+      } else {
+        return '';
+      }
     }
 
   }
