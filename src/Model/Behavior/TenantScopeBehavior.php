@@ -22,6 +22,7 @@ use Cake\ORM\Table;
 use Cake\ORM\Query;
 use MultiTenant\Core\MTApp;
 use MultiTenant\Error\DataScopeViolationException;
+use MultiTenant\Error\MultiTenantException;
 
 class TenantScopeBehavior extends Behavior {
 	
@@ -73,9 +74,27 @@ class TenantScopeBehavior extends Behavior {
  * @param \Cake\ORM\Query $query The query.
  * @return void
  */
-	public function beforeFind( Event $event, Query $query ) {
-		if ( MTApp::getContext() == 'tenant' ) {
-			$query->where([$this->_table->alias().'.'.$this->config('foreign_key_field')=>MTApp::tenant()->id]);
+	public function beforeFind( Event $event, Query $query, $options) {
+
+
+		// if context is tenant, add conditions to query
+		if ( MTApp::getContext() == 'tenant') {
+
+			// check if find option has "skipTenant", recursive error fix
+			if (!isset($options['skipTenantCheck']) || $options['skipTenantCheck'] !== true) {
+
+				// secure the configured tenant table by adding a primary key condition
+				if ($this->_table->alias() === MTApp::config('model')['className']) {
+					$query->where([$this->_table->alias().'.'.$this->_table->primaryKey()=>MTApp::tenant()->id]);
+				} else {
+					$query->where([$this->_table->alias().'.'.$this->config('foreign_key_field')=>MTApp::tenant()->id]);
+				}
+			}
+		}
+
+		// tenant scope does not allow global context
+		else {
+			throw new DataScopeViolationException('Tenant Scoped accessed globally');
 		}
 		return $query;
 	}
@@ -108,6 +127,11 @@ class TenantScopeBehavior extends Behavior {
 				
 			} // end if
 
+		} 
+
+		// tenant scope does not allow global context
+		else {
+			throw new DataScopeViolationException('Tenant Scoped accessed globally');
 		}
 
 		return true;
@@ -133,6 +157,11 @@ class TenantScopeBehavior extends Behavior {
 				throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id );
 			}
 
+		} 
+
+		// tenant scope does not allow global context
+		else {
+			throw new DataScopeViolationException('Tenant Scoped accessed globally');
 		}
 
 		return true;
