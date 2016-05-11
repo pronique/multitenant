@@ -115,10 +115,8 @@ class TenantScopeBehavior extends Behavior {
 			$field = $this->config('foreign_key_field');
 			if ( $entity->isNew()) {
 				
-				//blind overwrite, preventing user from providing explicit value except primary domain
-				if($this->_table->alias() !== MTApp::config('model')['className']){
-					$entity->{$field} = MTApp::tenant()->id;
-				}
+				//blind overwrite, preventing user from providing explicit value
+				$entity->{$field} = MTApp::tenant()->id;
 
 			} else { //update operation
 
