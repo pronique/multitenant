@@ -92,6 +92,11 @@ class TenantScopeBehavior extends Behavior {
 			}
 		}
 
+		//skip if primary domain
+		else if(MTApp::isPrimary()){
+			return true;
+		}
+
 		// tenant scope does not allow global context
 		else {
 			throw new DataScopeViolationException('Tenant Scoped accessed globally');
@@ -129,6 +134,11 @@ class TenantScopeBehavior extends Behavior {
 
 		} 
 
+		//skip if primary domain
+		else if(MTApp::isPrimary()){
+			return true;
+		}
+
 		// tenant scope does not allow global context
 		else {
 			throw new DataScopeViolationException('Tenant Scoped accessed globally');
@@ -158,6 +168,11 @@ class TenantScopeBehavior extends Behavior {
 			}
 
 		} 
+
+		//skip if primary domain
+		else if(MTApp::isPrimary()){
+			return true;
+		}
 
 		// tenant scope does not allow global context
 		else {
