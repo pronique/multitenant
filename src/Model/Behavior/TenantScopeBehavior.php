@@ -92,7 +92,7 @@ class TenantScopeBehavior extends Behavior {
 			}
 		}
 
-		//skip if primary domain
+		//skip if primary domain 
 		else if(MTApp::isPrimary()){
 			return true;
 		}
@@ -127,7 +127,7 @@ class TenantScopeBehavior extends Behavior {
 
 				//paranoid check of ownership
 				if ( $entity->{$field} != MTApp::tenant()->id ) { //current tenant is NOT owner
-					throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id );
+					throw new DataScopeViolationException('Tenant->id: ' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id: ' . $entity->id );
 				}
 				
 			} // end if
