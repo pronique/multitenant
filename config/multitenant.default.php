@@ -1,4 +1,4 @@
 <?php
 $config = [
-  'Strategy'=>'domain'
+    'Strategy'=>'domain'
 ];

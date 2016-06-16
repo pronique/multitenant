@@ -1,5 +1,5 @@
 <?php
 $config = [
-  'Strategy'=>'domain',
-  'foo'=>'bar'
+    'Strategy'=>'domain',
+    'foo'=>'bar'
 ];
