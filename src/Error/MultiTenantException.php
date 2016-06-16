@@ -22,5 +22,6 @@ use Cake\Core\Exception\Exception;
  * catch blocks can be specifically typed.
  *
  */
-class MultiTenantException extends Exception {
+class MultiTenantException extends Exception
+{
 }

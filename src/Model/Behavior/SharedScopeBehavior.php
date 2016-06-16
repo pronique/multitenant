@@ -23,121 +23,113 @@ use Cake\ORM\Query;
 use MultiTenant\Core\MTApp;
 use MultiTenant\Error\DataScopeViolationException;
 
-class SharedScopeBehavior extends Behavior {
-	
-/**
- * Keeping a reference to the table in order to,
- * be able to retrieve table/model attributes
- *
- * @var \Cake\ORM\Table
- */
-	protected $_table;
+class SharedScopeBehavior extends Behavior
+{
 
-/**
- * Default config
- *
- * These are merged with user-provided config when the behavior is used.
- *
- *
- * @var array
- */
-	protected $_defaultConfig = [
-		'implementedFinders' => [],
-		'implementedMethods' => [],
-		'global_value'=>0,
-		'foreign_key_field'=>'account_id'
-	];
+    /**
+     * Keeping a reference to the table in order to,
+     * be able to retrieve table/model attributes
+     *
+     * @var \Cake\ORM\Table
+     */
+    protected $_table;
 
-/**
- * Constructor
- *
- *
- * @param \Cake\ORM\Table $table The table this behavior is attached to.
- * @param array $config The config for this behavior.
- */
-	public function __construct(Table $table, array $config = []) {
+    /**
+     * Default config
+     *
+     * These are merged with user-provided config when the behavior is used.
+     *
+     * @var array
+     */
+    protected $_defaultConfig = [
+        'implementedFinders' => [],
+        'implementedMethods' => [],
+        'global_value'=>0,
+        'foreign_key_field'=>'account_id'
+    ];
 
-		//Merge $config with application-wide scopeBehavior config
-		$config = array_merge( MTApp::config( 'scopeBehavior' ), $config );
-		parent::__construct($table, $config);
+    /**
+     * Constructor
+     *
+     * @param \Cake\ORM\Table $table The table this behavior is attached to.
+     * @param array $config The config for this behavior.
+     */
+    public function __construct(Table $table, array $config = [])
+    {
+        //Merge $config with application-wide scopeBehavior config
+        $config = array_merge(MTApp::config('scopeBehavior'), $config);
+        parent::__construct($table, $config);
 
-		$this->_table = $table;
+        $this->_table = $table;
+    }
 
-	}
+    /**
+     * beforeFind callback
+     *
+     * inject where condition if context is 'tenant'
+     *
+     * @param \Cake\Event\Event $event The afterSave event that was fired.
+     * @param \Cake\ORM\Query $query The query.
+     * @return void
+     */
+    public function beforeFind(Event $event, Query $query)
+    {
+        if (MTApp::getContext() == 'tenant') {
+            $query->where([$this->_table->alias().'.'.$this->config('foreign_key_field')=>MTApp::tenant()->id]);
+        }
+        return $query;
+    }
 
-/**
- * beforeFind callback
- *
- * inject where condition if context is 'tenant'
- *
- * @param \Cake\Event\Event $event The afterSave event that was fired.
- * @param \Cake\ORM\Query $query The query.
- * @return void
- */
-	public function beforeFind( Event $event, Query $query ) {
-		if ( MTApp::getContext() == 'tenant' ) {
-			$query->where([$this->_table->alias().'.'.$this->config('foreign_key_field')=>MTApp::tenant()->id]);
-		}
-		return $query;
-	}
+    /**
+     * beforeSave callback
+     *
+     * Prevent saving if the context is not global
+     *
+     * @param \Cake\Event\Event $event The beforeSave event that was fired.
+     * @param \Cake\ORM\Entity $entity The entity that was saved.
+     * @return void
+     */
+    public function beforeSave(Event $event, Entity $entity, $options)
+    {
+        if (MTApp::getContext() == 'tenant') { //save new operation
 
-/**
- * beforeSave callback
- *
- * Prevent saving if the context is not global
- *
- * @param \Cake\Event\Event $event The beforeSave event that was fired.
- * @param \Cake\ORM\Entity $entity The entity that was saved.
- * @return void
- */
-	public function beforeSave( Event $event, Entity $entity, $options ) {
+            $field = $this->config('foreign_key_field');
+            if ($entity->isNew()) {
 
-		if ( MTApp::getContext() == 'tenant' ) { //save new operation
+                //blind overwrite, preventing user from providing explicit value
+                $entity->{$field} = MTApp::tenant()->id;
+            } else { //update operation
 
-			$field = $this->config('foreign_key_field');
-			if ( $entity->isNew() ) {
+                //paranoid check of ownership
+                if ($entity->{$field} != MTApp::tenant()->id) { //current tenant is NOT owner
+                    throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id);
+                }
+            } // end if
+        }
 
-				//blind overwrite, preventing user from providing explicit value
-				$entity->{$field} = MTApp::tenant()->id;
+        return true;
+    }
 
-			} else { //update operation
+    /**
+     * beforeDelete callback
+     *
+     * Prevent delete if the context is not global
+     *
+     * @param \Cake\Event\Event $event The beforeDelete event that was fired.
+     * @param \Cake\ORM\Entity $entity The entity that was saved.
+     * @return void
+     */
+    public function beforeDelete(Event $event, Entity $entity, $options)
+    {
+        if (MTApp::getContext() == 'tenant') {
+            $field = $this->config('foreign_key_field');
 
-				//paranoid check of ownership
-				if ( $entity->{$field} != MTApp::tenant()->id ) { //current tenant is NOT owner
-					throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id );
-				}
-				
-			} // end if
+            //paranoid check of ownership
+            if ($entity->{$field} != MTApp::tenant()->id) { //current tenant is NOT owner
+                throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id);
+            }
+        }
 
-		}
-
-		return true;
-	}
-
-/**
- * beforeDelete callback
- *
- * Prevent delete if the context is not global
- *
- * @param \Cake\Event\Event $event The beforeDelete event that was fired.
- * @param \Cake\ORM\Entity $entity The entity that was saved.
- * @return void
- */
-	public function beforeDelete( Event $event, Entity $entity, $options ) {
-
-		if ( MTApp::getContext() == 'tenant' ) { 
-
-			$field = $this->config('foreign_key_field');
-
-			//paranoid check of ownership
-			if ( $entity->{$field} != MTApp::tenant()->id ) { //current tenant is NOT owner
-				throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id );
-			}
-
-		}
-
-		return true;
-	}
-	
-
+        return true;
+    }
 }

@@ -16,7 +16,7 @@ namespace MultiTenant\Config;
 
 use Cake\Routing\Router;
 
-Router::plugin('MultiTenant', function($routes) {
-	$routes->connect('/:controller', ['action' => 'index']);
-	$routes->connect('/:controller/:action/*');
+Router::plugin('MultiTenant', function ($routes) {
+    $routes->connect('/:controller', ['action' => 'index']);
+    $routes->connect('/:controller/:action/*');
 });
