@@ -17,5 +17,3 @@ namespace MultiTenant\Config;
 use MultiTenant\Core\MTApp;
 use Cake\Configure\Engine\PhpConfig;
 use Cake\Core\Configure;
-
-MTApp::config(Configure::consume('MultiTenant'));
