@@ -142,8 +142,8 @@ Add the following to the bottom of your application's config\app.php
  * ## Options
  *
  * - `strategy` - 'domain' is currently the only implemented strategy
- * - `primaryDomain` - The domain for the main application
- *    value to false, when dealing with older versions of IE, Chrome Frame or certain web-browsing devices and AJAX
+ * - `primaryDomain` - The domain for the main application. All tenant subdomains finish with this.
+ * - `primarySubdomains` - Subdomains of the primaryDomain considered also as primary, for example, "www".
  * - `model` - The model that represents the tenant, usually 'Accounts'
  * - `redirectInactive` - URI to redirect when the tenant is not active or does not exist.  This should be a uri at the
  *	  primary domain, usually your signup page or feature pitch page with call-to-action signup button.
@@ -155,15 +155,18 @@ Add the following to the bottom of your application's config\app.php
  *
  */
 	'MultiTenant' => [
-		'strategy'=>'domain',
-		'primaryDomain'=>'www.example.com',
-		'model'=>[
-		  'className'=>'Accounts',
-		  'field'=>'domain', //field of model that holds subdomain/domain tenants
-		  'conditions'=>['is_active'=>1] //query conditions to match active accounts
+		'strategy' => 'domain',
+		'primaryDomain' => 'example.com',
+		'primarySubdomains => [
+		    'www',
+		]
+		'model' => [
+		  'className' => 'Accounts',
+		  'field' => 'domain', //field of model that holds subdomain/domain tenants
+		  'conditions' => ['is_active'=>1] //query conditions to match active accounts
 		],
-		'redirectInactive'=>'/register',
-		'reservedDomains'=>[
+		'redirectInactive' => '/register',
+		'reservedDomains' => [
 			'admin',
 			'superuser',
 			'system',
@@ -172,9 +175,9 @@ Add the following to the bottom of your application's config\app.php
 		'contextMap' => [
 			'admin'=>'admin.example.com' //an example of a custom context
 		],
-		'scopeBehavior'=>[
-			'global_value'=>0, //global records are matched by this value
-			'foreign_key_field'=>'account_id' //the foreign key field that associates records to tenant model
+		'scopeBehavior' => [
+			'global_value' => 0, //global records are matched by this value
+			'foreign_key_field' => 'account_id' //the foreign key field that associates records to tenant model
 		]
 	]
 ```
