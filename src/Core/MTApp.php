@@ -78,7 +78,7 @@ class MTApp {
 
     //Check for inactive/nonexistant domain
     if ( !$tenant ) {
-      self::_redirectInactive();
+      self::redirectInactive();
     }
 
     return $tenant;
@@ -113,8 +113,8 @@ class MTApp {
   
   } 
 
-  protected static function _redirectInactive() {
-  
+  public static function redirectInactive() {
+
     $uri = self::config('redirectInactive');
 
     if(strpos($uri, 'http') !== false) {

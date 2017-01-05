@@ -92,6 +92,11 @@ class TenantScopeBehavior extends Behavior {
 			}
 		}
 
+		//skip if primary domain 
+		else if(MTApp::isPrimary()){
+			return true;
+		}
+
 		// tenant scope does not allow global context
 		else {
 			throw new DataScopeViolationException('Tenant Scoped accessed globally');
@@ -113,8 +118,8 @@ class TenantScopeBehavior extends Behavior {
 		if ( MTApp::getContext() == 'tenant' ) { //save new operation
 
 			$field = $this->config('foreign_key_field');
-			if ( $entity->isNew() ) {
-
+			if ( $entity->isNew()) {
+				
 				//blind overwrite, preventing user from providing explicit value
 				$entity->{$field} = MTApp::tenant()->id;
 
@@ -122,12 +127,17 @@ class TenantScopeBehavior extends Behavior {
 
 				//paranoid check of ownership
 				if ( $entity->{$field} != MTApp::tenant()->id ) { //current tenant is NOT owner
-					throw new DataScopeViolationException('Tenant->id:' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id:' . $entity->id );
+					throw new DataScopeViolationException('Tenant->id: ' . MTApp::tenant()->id . ' does not own '.$this->_table->alias().'->id: ' . $entity->id );
 				}
 				
 			} // end if
 
 		} 
+
+		//skip if primary domain
+		else if(MTApp::isPrimary()){
+			return true;
+		}
 
 		// tenant scope does not allow global context
 		else {
@@ -158,6 +168,11 @@ class TenantScopeBehavior extends Behavior {
 			}
 
 		} 
+
+		//skip if primary domain
+		else if(MTApp::isPrimary()){
+			return true;
+		}
 
 		// tenant scope does not allow global context
 		else {
