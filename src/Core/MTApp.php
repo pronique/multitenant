@@ -15,10 +15,13 @@
  */
 namespace MultiTenant\Core;
 
+use Cake\Core\Configure;
 use Cake\Core\StaticConfigTrait;
 use Cake\Core\Exception\Exception;
+use Cake\Network\Session;
 use Cake\ORM\Entity;
 use Cake\ORM\TableRegistry;
+use Cake\Utility\Hash;
 
 //TODO Implement Singleton/Caching to eliminate sql query on every call
 class MTApp
@@ -140,21 +143,36 @@ class MTApp
 
 
     /**
-     * Returns the current tenant qualifier extracting it from the server name
-     * without the primaryDomain.
+     * Returns the current tenant qualifier depending on the strategy configured.
+     *
+     * - 'domain': will extract the tenant from the subdomain where the request
+     * comes from.
+     *
+     * - 'session': will take the tenant identifier from the current session using
+     * the path configured in the configuration.
      *
      * @return string Tenant qualifier
      */
     protected static function _getTenantQualifier()
     {
         $tenant = '';
-        //for domain this is the SERVER_NAME from $_SERVER
-        if (self::config('strategy') == 'domain') {
-            // check if tenant is available and server name valid
-            if (substr_count(env('SERVER_NAME'), self::config('primaryDomain')) > 0 &&
-                substr_count(env('SERVER_NAME'), '.') > 1) {
-                $tenant = str_replace('.' . self::config('primaryDomain'), '', env('SERVER_NAME'));
-            }
+
+        $strategyConfig = self::config('strategy');
+        $strategy = is_array($strategyConfig) ?
+            key($strategyConfig) :
+            $strategyConfig;
+        switch ($strategy) {
+            case 'domain':
+                // check if tenant is available and server name valid
+                if (substr_count(env('SERVER_NAME'), self::config('primaryDomain')) > 0 &&
+                    substr_count(env('SERVER_NAME'), '.') > 1
+                ) {
+                    $tenant = str_replace('.' . self::config('primaryDomain'), '', env('SERVER_NAME'));
+                }
+                break;
+            case 'session':
+                $tenant = Hash::get($_SESSION, Hash::get($strategyConfig, 'session.path'));
+                break;
         }
 
         return $tenant;

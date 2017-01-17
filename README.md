@@ -13,7 +13,7 @@ The project is currently in development and is considered experimental at this s
 The MultiTenant plugin is best to implement when you begin developing your application, but with some work
 you should be able to adapt an existing application to use the Plugin.
 
-The plugin currently implements the following multi-tenancy architecures (Strategy).
+The plugin currently implements the following multi-tenancy architecures (Strategy):
 
 ### Domain Strategy
 
@@ -21,6 +21,11 @@ The plugin currently implements the following multi-tenancy architecures (Strate
 * Single Application Instance
 * Subdomain per Tenant
 
+### Session Strategy
+
+* Shared Database, Shared Schema
+* Single Application Instance
+* Using same domain, the tenant is identified by the session path matched against the model field configured.
 
 ### Tenants
 
@@ -41,7 +46,9 @@ application. ie signup/register code.
 
 #### 'tenant' Context
 
-'tenant' context represents this tenant.  When the user is accessing the application at the subdomain, this is 
+'tenant' context represents this tenant.  
+
+* Domain Strategy: When the user is accessing the application at the subdomain, this is 
 considered the 'tenant' context.
 
 #### Custom Contexts
@@ -141,7 +148,7 @@ Add the following to the bottom of your application's config\app.php
  *
  * ## Options
  *
- * - `strategy` - 'domain' is currently the only implemented strategy
+ * - `strategy` - 'domain' or 'session'. If using session, you must link it to the session path where the tenant identifier is stored.
  * - `primaryDomain` - The domain for the main application. All tenant subdomains finish with this.
  * - `primarySubdomains` - Subdomains of the primaryDomain considered also as primary, for example, "www".
  * - `model` - The model that represents the tenant, usually 'Accounts'
@@ -177,6 +184,30 @@ Add the following to the bottom of your application's config\app.php
 		],
 		'scopeBehavior' => [
 			'global_value' => 0, //global records are matched by this value
+			'foreign_key_field' => 'account_id' //the foreign key field that associates records to tenant model
+		]
+	]
+```
+
+Here we have a session strategy configuration. When the users logs in
+the account_id is stored in the session. Then it's checked against the
+Accounts table (id field) where the account is active.
+```
+	'MultiTenant' => [
+		'strategy' => [
+		    'session' => [
+		        'path' => 'Auth.User.account_id'
+		    ]
+        ],
+        'primaryDomain' => 'www.example.com',
+		'model' => [
+		  'className' => 'Accounts',
+		  'field' => 'id', //field of model that holds subdomain/domain tenants
+		  'conditions' => ['is_active' => 1] //query conditions to match active accounts
+		],
+		'redirectInactive' => '/register',
+		'scopeBehavior' => [
+			'global_value' => 1, //global records are matched by this value
 			'foreign_key_field' => 'account_id' //the foreign key field that associates records to tenant model
 		]
 	]
