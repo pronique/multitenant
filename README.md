@@ -27,6 +27,12 @@ The plugin currently implements the following multi-tenancy architecures (Strate
 * Single Application Instance
 * Using same domain, the tenant is identified by the session path matched against the model field configured.
 
+### Configuration Strategy
+
+* Shared Database, Shared Schema
+* Single Application Instance
+* Using same domain, the tenant is identified by a key in the CakePHP configuration storage
+
 ### Tenants
 
 The plugin introduces the concept of Tenants, a tenant represents each customer account.
@@ -148,7 +154,7 @@ Add the following to the bottom of your application's config\app.php
  *
  * ## Options
  *
- * - `strategy` - 'domain' or 'session'. If using session, you must link it to the session path where the tenant identifier is stored.
+ * - `strategy` - 'domain', 'session' or 'configuration'.
  * - `primaryDomain` - The domain for the main application. All tenant subdomains finish with this.
  * - `primarySubdomains` - Subdomains of the primaryDomain considered also as primary, for example, "www".
  * - `model` - The model that represents the tenant, usually 'Accounts'
@@ -212,6 +218,22 @@ Accounts table (id field) where the account is active.
 		]
 	]
 ```
+
+Here you can see a *configuration* strategy:
+```
+	'MultiTenant' => [
+		'strategy' => [
+		    'configuration' => [
+		        'tenant_key' => 'account_id'
+		    ]
+        ],
+        ...
+
+    // ...then, somewhere in your code, you can change the tenant
+    // simply writing to the configuration key.    
+    Configure::write('account_id', 34);
+    ...
+```    
 
 Note:  don't forget to add the , to the bottom config section when pasting the above configuration.  A syntax error in config\app.php is a silent failure (blank page). 
 

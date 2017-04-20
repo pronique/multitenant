@@ -173,6 +173,9 @@ class MTApp
             case 'session':
                 $tenant = Hash::get($_SESSION, Hash::get($strategyConfig, 'session.path'));
                 break;
+            case 'configuration':
+                $tenant = Configure::read(Hash::get($strategyConfig, 'configuration.tenant_key'));
+                break;
         }
 
         return $tenant;
